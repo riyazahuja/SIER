@@ -27,8 +27,6 @@ SIER Financial Forecasting aims to:
     - `/training`: Scripts and notebooks used for model training.
     - `/evaluation`: Tools and scripts for model evaluation and validation.
 
-- `/notebooks`: Jupyter notebooks for exploratory data analysis, hypothesis testing, and initial prototyping.
-
 - `/src`: Source code for the SIER platform, including data processing, model inference, and front-end interface.
     - `/api`: Code for the backend, including data APIs and model serving.
     - `/ui`: Front-end code for the web application or user interface.
