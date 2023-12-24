@@ -1,4 +1,5 @@
 import uuid
+import requests
 '''
 
 spec:
@@ -44,12 +45,13 @@ class Stock:
         self.ticker = ticker
         self.raw_data=raw_data
         self.pricefn = lambda t: -1
+        self.cache = lambda t: False
     
     def set_pricefn(self, raw_data = None):
         self.raw_data=raw_data
         if(self.raw_data == None):
             return
-
+        
         #parse here!!!!!
         #set pricefn!!!!
         return
@@ -85,11 +87,17 @@ class Portfolio:
     def sell(self, sellOrder):
         (ticker, date, number) = sellOrder
         value = number * self.holdings[ticker].get(date)
-        if (self.holdings[ticker] < number):
-            raise str
+        if (ticker not in self.holdings.keys()):
+            raise KeyError("Ticker Not Found")
+        
         if (self.holdings[ticker] < number):
             raise ValueError("Insufficient Cash")
-
+        
+        self += value
+        self.holdings[ticker] -= number
+        if (self.holdings[ticker] == 0):
+            del self.holdings[ticker]
+        
 
         
 
