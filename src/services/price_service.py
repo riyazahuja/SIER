@@ -3,7 +3,8 @@ from ..utils.cache import Cache
 import os
 from datetime import datetime, timedelta
 
-STOCK_API_KEY = os.genenv('STOCK_API_KEY')
+STOCK_API_KEY = os.getenv('STOCK_API_KEY')
+
 
 def is_within_past_100_days(date_str):
         # Format of the date string being passed in, e.g., "2023-01-09"
@@ -28,15 +29,18 @@ class PriceService:
 
     def fetch(self, ticker, full_output = False):
 
-        url = f'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={ticker}{f"&output_size=full" if full_output else ""}&apikey={STOCK_API_KEY}'
+        url = f'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={ticker}{f"&output_size=full" if full_output else ""}&apikey={self.api_key}'
 
         resp = requests.get(url)
         
         if (resp.status_code == 200):
 
             
-            json_data = resp.json
-            key = json_data.keys()[-1]
+            json_data = resp.json()
+            
+            key = 'Time Series (Daily)'
+            if (key not in json_data.keys()):
+                raise KeyError(f'Cannot Retrieve Time Series: {json_data}')
             time_series = json_data[key]
             
             result = dict()
@@ -53,7 +57,7 @@ class PriceService:
             return result
             
         else:
-            raise ConnectionError(f"API Request Failed: {resp}")
+            raise ConnectionError(f"API Request Failed: {resp}, {resp.text}")
         
 
 
@@ -69,4 +73,6 @@ class PriceService:
         
         for k,v in time_series.items():
             self.cache.put((ticker, k), v)
-        return time_series
+        
+        return self.cache.get((ticker, date))
+        

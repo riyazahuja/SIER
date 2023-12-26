@@ -1,5 +1,7 @@
 from collections import OrderedDict
 
+#TODO: Refactor tuple keys to 2-level cache (ticker : date : data)
+
 class Cache:
     def __init__(self, capacity : int = 4096):
         self.cache = OrderedDict()
@@ -17,7 +19,7 @@ class Cache:
             self.cache.move_to_end(key)
         
         #check while of elif
-        while( len(self.cache >= self.capacity)):
+        while( len(self.cache) >= self.capacity):
             self.cache.popitem(last = False)
         
         self.cache[key] = value
