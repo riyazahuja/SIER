@@ -38,6 +38,38 @@ SIER aims to:
 
 - `/deploy`: Scripts and configuration files for deploying the application in various environments.
 
+
+## UI Setup and Local Development
+
+### Setting Up the Local HTTP Server
+
+SIER's UI is built with web technologies and can be run locally using `http-server`, a simple, zero-configuration command-line HTTP server. To set up and run the UI on your local machine, follow these steps:
+
+1. **Install `http-server` globally**: This allows you to use `http-server` from any directory in your command line.
+    ```bash
+    npm install -g http-server
+    ```
+   - If you do not have Node.js and npm installed, download and install them from [nodejs.org](https://nodejs.org/).
+
+2. **Navigate to the Project Root**: Change into the root directory of the SIER project where the `index.html` file is located within the `src/ui` directory.
+
+3. **Start the Server**: Run the following command to start `http-server`, disabling caching with `-c-1`:
+    ```bash
+    http-server -c-1
+    ```
+    - The `-c-1` flag is used to prevent the server from caching files.
+
+4. **Access the UI**: Open your web browser and navigate to the following address to view the UI:
+    ```
+    http://127.0.0.1:8080/src/ui/
+    ```
+
+### Development and Testing
+
+- **Live Reloading**: For a better development experience with live reloading, consider using `http-server` with a watch tool like `nodemon` or integrating a more advanced build tool like `webpack` that provides a development server with live reloading out of the box.
+- **Testing**: Test the UI in multiple browsers and screen sizes to ensure compatibility and responsiveness.
+- **Contributions**: If you make changes to the UI, please ensure they are well-documented and tested before submitting a pull request.
+
 ## How to Contribute
 
 - **Fork the Repository**: Start by forking the repository and cloning it to your local machine.
