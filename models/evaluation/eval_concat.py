@@ -39,12 +39,14 @@ def create_sequences(input_data, target_data, symbols, window_size):
 # Load the same dataset used for training
 # Preprocess the dataset identically to how it was done in the training script
 
-ticker = 'AAPL'
+ticker = 'IBM'
 
 f = open(f'../../data/processed/{ticker}_data.json')
 data_json = json.load(f)
 data = data_json[ticker]
 f.close()
+
+
 
 
 df = pd.DataFrame(data)
@@ -92,9 +94,13 @@ rmse = sqrt(mean_squared_error(actual_prices, predicted_stock_price))
 print(f"Test RMSE: {rmse}")
 
 # Plot the results for visualization
+
+dates = df['Date'][window_size:]
+
+
 plt.figure(figsize=(15, 5))
-plt.plot(actual_prices, label='Actual Prices')
-plt.plot(predicted_stock_price, label='Predicted Prices', alpha=0.7)
+plt.plot(dates, actual_prices, label='Actual Prices')
+plt.plot(dates, predicted_stock_price, label='Predicted Prices', alpha=0.7)
 plt.title('Actual vs Predicted Stock Prices')
 plt.xlabel('Time')
 plt.ylabel('Price')
