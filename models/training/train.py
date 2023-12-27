@@ -17,9 +17,8 @@ f.close()
 
 
 df = pd.DataFrame(IBM_data)
+df= df.T  
 
-# Transpose the DataFrame so that dates are rows and indicators are columns
-df= df.T  # or d = d.transpose()
 
 
 # Initialize a scaler for the features

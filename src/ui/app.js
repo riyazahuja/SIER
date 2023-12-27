@@ -1,5 +1,5 @@
 // Fetch the stock data from the JSON file
-fetch('../../data/processed/IBM_full.json')
+fetch('../../data/processed/AAPL_data.json')
     .then(response => response.json())
     .then(data => {
         // Assuming the data format is the same as the one provided in the question
@@ -8,11 +8,11 @@ fetch('../../data/processed/IBM_full.json')
         // After fetching the data and within the .then() block where you have your data
 
 // Prepare the data for the closing prices line chart
-const dates = Object.keys(stockData.IBM).reverse();
-const closingPrices = dates.map(date => stockData.IBM[date].close);
+const dates = Object.keys(stockData.AAPL).reverse();
+const closingPrices = dates.map(date => stockData.AAPL[date].close);
 
 // Prepare the data for the volume bar chart
-const volumes = dates.map(date => stockData.IBM[date].volume);
+const volumes = dates.map(date => stockData.AAPL[date].volume);
 
 // Setting up the mixed chart
 const ctx = document.getElementById('chartContainer').getContext('2d');
