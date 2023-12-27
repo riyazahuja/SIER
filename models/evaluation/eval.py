@@ -24,9 +24,9 @@ def create_sequences(input_data, target_data, window_size):
 # Load the same dataset used for training
 # Preprocess the dataset identically to how it was done in the training script
 
-f = open('../../data/processed/IBM_data.json')
+f = open('../../data/processed/AAPL_data.json')
 data_json = json.load(f)
-IBM_data = data_json['IBM']
+IBM_data = data_json['AAPL']
 f.close()
 
 

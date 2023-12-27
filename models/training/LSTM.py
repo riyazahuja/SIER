@@ -56,7 +56,7 @@ model.add(Dense(units=1))  # Output layer predicts the 'close' price
 
 # Compile and fit model
 model.compile(optimizer='adam', loss='mean_squared_error')
-model.fit(X_train, y_train, epochs=25, batch_size=32, validation_data=(X_test, y_test))
+model.fit(X_train, y_train, epochs=100, batch_size=32, validation_data=(X_test, y_test))
 
 
 model.save('../tech_model.keras')

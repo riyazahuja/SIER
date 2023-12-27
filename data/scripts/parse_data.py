@@ -88,22 +88,22 @@ def fill_daily_data(sorted_dates, weekly_data):
 
     return daily_data
 
+ticker = 'IBM'
 
-
-price_f = open(f'../raw/downloads/IBM_full_raw.json')
-overview_f = open(f'../raw/downloads/IBM_overview.json')
-news_f= open(f'../raw/downloads/IBM_news.json')
-earnings_f= open(f'../raw/downloads/IBM_earnings.json')
-ADX_f= open(f'../raw/downloads/tech/IBM_ADX.json')
-BBAND_f= open(f'../raw/downloads/tech/IBM_BBAND.json')
-MACD_f= open(f'../raw/downloads/tech/IBM_MACD.json')
-OBV_f= open(f'../raw/downloads/tech/IBM_OBV.json')
-RSI_f= open(f'../raw/downloads/tech/IBM_RSI.json')
+price_f = open(f'../raw/downloads/{ticker}_full_raw.json')
+#overview_f = open(f'../raw/downloads/{ticker}_overview.json')
+#news_f= open(f'../raw/downloads/{ticker}_news.json')
+#earnings_f= open(f'../raw/downloads/{ticker}_earnings.json')
+ADX_f= open(f'../raw/downloads/tech/{ticker}_ADX.json')
+BBAND_f= open(f'../raw/downloads/tech/{ticker}_BBAND.json')
+MACD_f= open(f'../raw/downloads/tech/{ticker}_EMA.json') #CHANGE BACK TO MACD WHEN PREMIUM
+OBV_f= open(f'../raw/downloads/tech/{ticker}_OBV.json')
+RSI_f= open(f'../raw/downloads/tech/{ticker}_RSI.json')
 
 price = json.load(price_f)
-overview = json.load(overview_f)
-news= json.load(news_f)
-earnings = json.load(earnings_f)
+#overview = json.load(overview_f)
+#news= json.load(news_f)
+#earnings = json.load(earnings_f)
 ADX = json.load(ADX_f)
 BBAND = json.load(BBAND_f)
 MACD = json.load(MACD_f)
@@ -111,9 +111,9 @@ OBV = json.load(OBV_f)
 RSI = json.load(RSI_f)
 
 price_f.close()
-overview_f.close()
-news_f.close()
-earnings_f.close()
+#overview_f.close()
+#news_f.close()
+#earnings_f.close()
 ADX_f.close()
 BBAND_f.close()
 MACD_f.close()
@@ -132,15 +132,16 @@ RSI_f.close()
 
 time_series_daily = dict()
 
-price = price['IBM']
+price = price[ticker]
 ADX = ADX['Technical Analysis: ADX']
-MACD = MACD['Technical Analysis: MACD']
+#MACD = MACD['Technical Analysis: MACD']
+MACD = MACD['Technical Analysis: EMA']
 
 BBAND = BBAND['Technical Analysis: BBANDS']
 OBV = OBV['Technical Analysis: OBV']
 RSI = RSI['Technical Analysis: RSI']
 
-price = interpolate(price)
+#price = interpolate(price)
 ADX = interpolate(ADX)
 MACD = interpolate(MACD)
 BBAND = interpolate(BBAND)
@@ -155,6 +156,7 @@ for date, pd in price.items():
 
     try:
         metrics = [ADX[date],MACD[date],BBAND[date],OBV[date],RSI[date]]
+        #metrics = [ADX[date],BBAND[date],OBV[date],RSI[date]]
     except KeyError:
         continue
 
@@ -165,9 +167,9 @@ for date, pd in price.items():
     
     time_series_daily[date] = entry
 
-result = {"IBM" : time_series_daily}
+result = {ticker : time_series_daily}
 
-out_file = open(f"../processed/IBM_data.json", "w") 
+out_file = open(f"../processed/{ticker}_data.json", "w") 
 
 json.dump(result, out_file, indent = 6) 
 out_file.close() 
