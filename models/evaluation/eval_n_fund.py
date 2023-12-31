@@ -8,14 +8,14 @@ import json
 
 
 # Load the model and scalers
-model = load_model('../lstm_model.keras')
-scaler_features = joblib.load('../scaler_features.pkl')
-scaler_target = joblib.load('../scaler_target.pkl')
+model = load_model('../lstm_model_fund.keras')
+scaler_features = joblib.load('../scaler_features_fund.pkl')
+scaler_target = joblib.load('../scaler_target_fund.pkl')
 
 ticker = 'IBM'
 
 # Load data for a single ticker
-f = open(f'../../data/processed/{ticker}_data.json')  
+f = open(f'../../data/processed/{ticker}_data_fund.json')  
 data_json = json.load(f)
 ticker_data = data_json[ticker]  # Replace TICKER with your actual ticker
 f.close()
@@ -115,7 +115,7 @@ def predict(start_date):
 
 
 dates_full = pd.to_datetime(df['Date'])
-days = [dates_full[i] for i in range(window_size, len(dates_full)-forecast_horizon) if (i % forecast_horizon == 0)]
+days = [dates_full[i] for i in range(window_size, len(dates_full)-forecast_horizon) if (i % (forecast_horizon // 3) == 0)]
 #print(days)
 #days = ['2023-10-02','2023-11-01']
 # print('\nFLATTEN\n')
