@@ -1,0 +1,28 @@
+<!-- templates/stocks/portfolio.html -->
+<h1>My Portfolio</h1>
+
+<!-- Display current positions -->
+<ul>
+    {% for position in positions %}
+    <li>
+        {{ position.purchase_date }} - <a href="{% url 'stocks:stock_detail' position.stock.symbol %}">{{ position.stock.symbol }}</a> - {{ position.shares }} shares
+        <!-- Button to remove position -->
+        <form method="post" style="display: inline;">
+            {% csrf_token %}
+            <input type="hidden" name="position_id" value="{{ position.id }}">
+            <button type="submit" name="remove">Sell</button>
+        </form>
+    </li>
+    {% empty %}
+    <li>No positions in your portfolio.</li>
+    {% endfor %}
+</ul>
+
+<!-- Form to add new position -->
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" name="add">Add Position</button>
+</form>
+
+<a href="{% url 'user_home' %}">Back to Home</a>

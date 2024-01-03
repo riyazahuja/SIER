@@ -1,0 +1,11 @@
+<!-- templates/stocks/stock_detail.html -->
+<h1>{{ stock.symbol }} - {{ stock.name }}</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.shares }}
+    {{ form.purchase_date }}
+    <button type="submit" name="add">Add Position</button>
+</form>
+
+<a href="{% url 'stocks:portfolio' %}">Back to Portfolio</a>
+<a href="{% url 'user_home' %}">Back to Home</a>

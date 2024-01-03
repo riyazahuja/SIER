@@ -1,67 +1,89 @@
-import numpy as np
-from sklearn.preprocessing import MinMaxScaler
-from keras.models import Sequential
-from keras.layers import LSTM, Dense, Dropout
-import json
 import pandas as pd
-from sklearn.metrics import mean_squared_error
-from math import sqrt
+from sklearn.preprocessing import MinMaxScaler
+from keras.models import Model
+from keras.layers import Input, LSTM, Dense, RepeatVector, TimeDistributed
+from keras.optimizers import Adam
 import matplotlib.pyplot as plt
+import numpy as np
+import json
 import joblib
-
-
-f = open('../../data/processed/IBM_data.json')
-data_json = json.load(f)
-IBM_data = data_json['IBM']
-f.close()
-
-
-df = pd.DataFrame(IBM_data)
-df= df.T  
+import sys
 
 
 
-# Initialize a scaler for the features
-scaler_features = MinMaxScaler(feature_range=(0, 1))
-scaled_features = scaler_features.fit_transform(df)
-
-# Separate the target feature (close price) and scale it
-scaler_target = MinMaxScaler(feature_range=(0, 1))
-scaled_target = scaler_target.fit_transform(df[['close']])
-
-# Prepare the sequence data
-def create_sequences(input_data, target_data, window_size):
+ # Create sequences for single ticker
+def create_sequences(input_data, target_data, window_size, forecast_horizon):
     X, y = [], []
-    for i in range(window_size, len(input_data)):
-        X.append(input_data[i-window_size:i])  # Get the past 'window_size' days
-        y.append(target_data[i, 0])  # Predict the next 'close' value
+    for i in range(window_size, len(input_data) - forecast_horizon + 1):
+        X.append(input_data[i-window_size:i])
+        y.append(target_data[i:i+forecast_horizon])
     return np.array(X), np.array(y)
+    
 
-window_size = 60  # Use last 60 days of data to predict the next day
-X, y = create_sequences(scaled_features, scaled_target, window_size)
+def train(ticker, forecast_horizon, window_size, epochs=25, batch_size=32, training_split = 0.9):
 
-# Train-test split
-split = int(0.8 * len(X))
-X_train, X_test = X[:split], X[split:]
-y_train, y_test = y[:split], y[split:]
+    # Load data for a single ticker
+    f = open('../../data/processed/data.json')  
+    data_json = json.load(f)
+    ticker_data = data_json[ticker] 
+    f.close()
 
-# Build LSTM model
-model = Sequential()
-model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
-model.add(Dropout(0.2))
-model.add(LSTM(units=50, return_sequences=False))
-model.add(Dropout(0.2))
-model.add(Dense(units=1))  # Output layer predicts the 'close' price
+    df = pd.DataFrame(ticker_data).T
+    df = df.reset_index().rename(columns={'index': 'Date'})
+    df['Date'] = pd.to_datetime(df['Date'])
+    df.sort_values(by='Date', inplace=True)
+    df.reset_index(drop=True, inplace=True)
 
-# Compile and fit model
-model.compile(optimizer='adam', loss='mean_squared_error')
-model.fit(X_train, y_train, epochs=100, batch_size=32, validation_data=(X_test, y_test))
+    numeric_features = df.drop(columns=['Date']).columns
+
+    # Initialize scalers for the features and target
+    scaler_features = MinMaxScaler(feature_range=(0, 1))
+    scaler_target = MinMaxScaler(feature_range=(0, 1))
+
+    scaled_features = scaler_features.fit_transform(df[numeric_features])
+    scaled_target = scaler_target.fit_transform(df[['close']])
+
+    X, y = create_sequences(scaled_features, scaled_target, window_size, forecast_horizon)
+
+    # Split data into training and test sets
+    split = int(training_split * len(X))
+    X_train, X_test = X[:split], X[split:]
+    y_train, y_test = y[:split], y[split:]
+
+    # Define the seq2seq model architecture
+    encoder_inputs = Input(shape=(window_size, X.shape[2]))
+    encoder = LSTM(50, return_state=True, dropout=0.2)
+    encoder_outputs, state_h, state_c = encoder(encoder_inputs)
+    encoder_states = [state_h, state_c]
+    decoder_inputs = RepeatVector(forecast_horizon)(encoder_outputs)
+    decoder_lstm = LSTM(50, return_sequences=True, dropout=0.2)
+    decoder_outputs = decoder_lstm(decoder_inputs, initial_state=encoder_states)
+    decoder_dense = TimeDistributed(Dense(1))
+    decoder_outputs = decoder_dense(decoder_outputs)
+
+    model = Model(encoder_inputs, decoder_outputs)
+
+    # Compile the model
+    model.compile(optimizer='adam', loss='mean_squared_error')
+
+    # Train the model
+    model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, validation_data=(X_test, y_test))
+
+    # Save the model and scalers
+    model.save(f'../bin/{ticker}/{forecast_horizon}f_{window_size}w_model.keras')
+    joblib.dump(scaler_features, f'../bin/{ticker}/{forecast_horizon}f_{window_size}w_scaler_features.pkl')
+    joblib.dump(scaler_target, f'../bin/{ticker}/{forecast_horizon}f_{window_size}w_scaler_target.pkl')
 
 
-model.save('../tech_model.keras')
 
 
-joblib.dump(scaler_features, '../scaler_features.pkl')
-joblib.dump(scaler_target, '../scaler_target.pkl')
 
 
+if __name__ == "__main__":
+    ticker = sys.argv[1]
+    forecast_horizon = int(sys.argv[2])
+    window_size = 4 * forecast_horizon
+    if len(sys.argv) > 3:
+        window_size = int(sys.argv[3])
+    
+    train(ticker,forecast_horizon,window_size)
