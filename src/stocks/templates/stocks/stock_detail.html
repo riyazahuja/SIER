@@ -34,10 +34,15 @@
 <!-- Add position form -->
 <form method="post">
     {% csrf_token %}
+    <input type="hidden" name="symbol" value="{{ stock.symbol }}">
     {{ form.shares }}
     {{ form.purchase_date }}
     <button type="submit" name="add">Add Position</button>
 </form>
+
+{% if error_message %}
+<p style="color: red;">{{ error_message }}</p>
+{% endif %}
 
 <a href="{% url 'stocks:portfolio' %}">Back to Portfolio</a>
 <a href="{% url 'user_home' %}">Back to Home</a>

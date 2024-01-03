@@ -69,11 +69,3 @@ def login(request):
         form = AuthenticationForm()
     return render(request, 'accounts/login.html', {'form': form})
 
-
-'''
-class CustomLogoutView(LogoutView):
-    next_page = reverse_lazy('home')  # Redirect to home page or wherever you wish
-
-    def get(self, *args, **kwargs):
-        return self.post(*args, **kwargs)
-'''

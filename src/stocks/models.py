@@ -52,8 +52,44 @@ class Price(models.Model):
 
 
 
+class Order(models.Model):
+    BUY = 'B'
+    SELL = 'S'
+    ORDER_CHOICES = [
+        (BUY, 'Buy'),
+        (SELL, 'Sell'),
+    ]
+
+    stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
+    shares = models.IntegerField()
+    price = models.ForeignKey(Price, on_delete=models.SET_NULL, null=True)
+    order_type = models.CharField(
+        max_length=1,
+        choices=ORDER_CHOICES,
+        help_text="B for buy, S for sell"
+    )
+    transaction_date = models.DateField()
 
 
+    def validate_and_set_price(self):
+        # Attempt to find a valid price for the given stock and date
+        try:
+            price = Price.objects.get(stock=self.stock, date=self.transaction_date)
+            self.price = price
+        except Price.DoesNotExist:
+            # No valid price found
+            self.price = None
+
+    
+    def save(self, *args, **kwargs):
+        self.validate_and_set_price()
+        super().save(*args, **kwargs)  # Call the "real" save() method.
+
+    def __str__(self):
+        return f"{'BUY' if self.order_type == 'B' else 'SELL'} Order: [{self.shares}x {self.stock} | {self.transaction_date} | ${self.price.c}/share | value: ${self.price.c * self.shares}]"
+
+
+'''
 class Position(models.Model):
     stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
     shares = models.IntegerField()
@@ -61,11 +97,12 @@ class Position(models.Model):
 
     def __str__(self):
         return f"{self.shares} shares of {self.stock}"
+'''
 
 class Portfolio(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     positions = models.ManyToManyField(Position)
-    #cash_balance = models.DecimalField(max_digits=15, decimal_places=2, default=10000)  # Default cash balance, e.g., $10,000
+    cash_balance = models.DecimalField(max_digits=15, decimal_places=2, default=10000)  # Default cash balance, e.g., $10,000
 
 
     def __str__(self):

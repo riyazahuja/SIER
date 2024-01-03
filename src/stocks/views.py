@@ -4,13 +4,8 @@ from django.contrib.auth.decorators import login_required
 from .forms import PositionForm
 from django.http import HttpResponseRedirect
 
-'''
-def stock_detail(request, symbol):
-    # Attempt to fetch the stock, or return a "Stock not found" page.
-    stock = get_object_or_404(Stock, symbol=symbol.upper())
-    return render(request, 'stocks/stock_detail.html', {'stock': stock})
-'''
 
+'''
 def stock_detail(request, symbol):
     stock = get_object_or_404(Stock, symbol=symbol.upper())
     if request.method == 'POST':
@@ -24,15 +19,27 @@ def stock_detail(request, symbol):
     else:
         form = PositionForm(initial={'symbol': stock.symbol})
     return render(request, 'stocks/stock_detail.html', {'stock': stock, 'form': form})
+'''
 
-'''
-@login_required
-def portfolio(request):
-    # Ensures that portfolio exists or returns 404
-    user_portfolio = get_object_or_404(Portfolio, user=request.user)
-    positions = user_portfolio.positions.all()
-    return render(request, 'stocks/portfolio.html', {'positions': positions})
-'''
+def stock_detail(request, symbol):
+    stock = get_object_or_404(Stock, symbol=symbol.upper())
+    
+    if request.method == 'POST':
+        form = PositionForm(request.POST)
+        if form.is_valid():
+            new_position = form.save(commit=False)
+            new_position.stock = stock  # Set the stock to the current stock
+            new_position.save()
+            request.user.portfolio.positions.add(new_position)
+            return redirect('stocks:portfolio')
+        else:
+            # Provide the form with the error messages to display
+            return render(request, 'stocks/stock_detail.html', {'stock': stock, 'form': form, 'error_message': 'Invalid form data. Please check the entered values.'})
+    else:
+        form = PositionForm(initial={'symbol': stock.symbol})
+    
+    return render(request, 'stocks/stock_detail.html', {'stock': stock, 'form': form})
+
 
 @login_required
 def portfolio(request):
