@@ -1,5 +1,37 @@
 <!-- templates/stocks/stock_detail.html -->
 <h1>{{ stock.symbol }} - {{ stock.name }}</h1>
+
+<div>
+    <p><strong>Asset Type:</strong> {{ stock.asset_type }}</p>
+    <p><strong>Description:</strong> {{ stock.description }}</p>
+    <p><strong>CIK:</strong> {{ stock.CIK }}</p>
+    <p><strong>Currency:</strong> {{ stock.currency }}</p>
+    <p><strong>Country:</strong> {{ stock.country }}</p>
+    <p><strong>Sector:</strong> {{ stock.sector }}</p>
+    <p><strong>Industry:</strong> {{ stock.industry }}</p>
+    <p><strong>Address:</strong> {{ stock.address }}</p>
+    <p><strong>Fiscal Year End:</strong> {{ stock.fiscal_year_end }}</p>
+    <p><strong>Latest Quarter:</strong> {{ stock.latest_quarter }}</p>
+    <!-- Display additional data from the JSONField if needed -->
+</div>
+
+<!-- Show the latest price available -->
+<div>
+    <h2>Latest Price:</h2>
+    {% if stock.price_set.first %}
+    <p><strong>Date:</strong> {{ stock.price_set.first.date }}</p>
+    <p><strong>Open:</strong> {{ stock.price_set.first.o }}</p>
+    <p><strong>High:</strong> {{ stock.price_set.first.h }}</p>
+    <p><strong>Low:</strong> {{ stock.price_set.first.l }}</p>
+    <p><strong>Close:</strong> {{ stock.price_set.first.c }}</p>
+    <p><strong>Volume:</strong> {{ stock.price_set.first.v }}</p>
+    <!-- Display additional data from the JSONField if needed -->
+    {% else %}
+    <p>Price data not available.</p>
+    {% endif %}
+</div>
+
+<!-- Add position form -->
 <form method="post">
     {% csrf_token %}
     {{ form.shares }}

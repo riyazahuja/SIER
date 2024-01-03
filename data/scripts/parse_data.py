@@ -193,6 +193,16 @@ def parse(tickers):
         time_series_daily = dict()
 
         price = price['Time Series (Daily)']
+        temp = {}
+        for date, d in price.items():
+            temp[date] = {}
+            temp[date]['open'] = d['1. open']
+            temp[date]['high'] = d['2. high']
+            temp[date]['low']= d['3. low']
+            temp[date]['close']= d['4. close']
+            temp[date]['volume']= d['5. volume']
+        price = temp
+
 
         ADX = ADX['Technical Analysis: ADX']
         #MACD = MACD['Technical Analysis: MACD']
@@ -240,7 +250,27 @@ def parse(tickers):
             
             time_series_daily[date] = entry
 
-        result = time_series_daily
+
+        overview_f = open(f'../raw/{ticker}/{ticker}_overview.json')
+        overview = json.load(overview_f)
+
+        for k,v in overview.items():
+            if v.isnumeric():
+                overview[k] = int(v)
+            else:
+                try:
+                    overview[k] = float(v)
+                except:
+                    pass
+
+        overview_f.close()
+
+        
+
+        result = {
+            "Overview" : overview,
+            "Time Series (Daily)" : time_series_daily
+        }
 
         out_file = open(f"../processed/{ticker}_data.json", "w") 
 
