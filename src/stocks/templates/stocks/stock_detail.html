@@ -1,19 +1,100 @@
 <!-- templates/stocks/stock_detail.html -->
+{% load static %}
+
+
 <h1>{{ stock.symbol }} - {{ stock.name }}</h1>
 
+
+
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Container for the chart -->
+<canvas id="stockPriceChart" width="1200" height="600"></canvas>
+
+
 <div>
-    <p><strong>Asset Type:</strong> {{ stock.asset_type }}</p>
-    <p><strong>Description:</strong> {{ stock.description }}</p>
-    <p><strong>CIK:</strong> {{ stock.CIK }}</p>
-    <p><strong>Currency:</strong> {{ stock.currency }}</p>
-    <p><strong>Country:</strong> {{ stock.country }}</p>
-    <p><strong>Sector:</strong> {{ stock.sector }}</p>
-    <p><strong>Industry:</strong> {{ stock.industry }}</p>
-    <p><strong>Address:</strong> {{ stock.address }}</p>
-    <p><strong>Fiscal Year End:</strong> {{ stock.fiscal_year_end }}</p>
-    <p><strong>Latest Quarter:</strong> {{ stock.latest_quarter }}</p>
-    <!-- Display additional data from the JSONField if needed -->
+    <h2>Get Predictions:</h2>
+    <form method="post" action="."> <!-- Posts to the same URL -->
+        {% csrf_token %}
+        <!-- Input for prediction date -->
+        <input type="date" name="start_date" required>
+        <button type="submit" name="predict">Predict Prices</button>
+    </form>
 </div>
+
+
+
+
+
+<!-- Chart rendering script -->
+<script>
+    // Retrieve the serialized data
+    //var dates = JSON.parse(document.getElementById('dates_json').textContent);
+    //var closingPrices = JSON.parse(document.getElementById('closing_prices_json').textContent);
+    var dates = JSON.parse('{{ dates|safe }}');
+    var closingPrices = JSON.parse('{{ closing_prices|safe }}');
+
+
+    var pred = JSON.parse('{{ predictions|safe }}');
+
+
+    
+    //var datesFull = pred.dates_full
+    //var actualPricesFull = pred.actual_prices_full
+    //var forecastDates = pred.forecast_dates
+    //var predictedPrices = pred.predicted_prices
+    
+
+
+    // Prepare your data for Chart.js
+    const data = {
+        labels: dates,  // Use the dates array here
+        datasets: [{
+            label: 'Closing Price',
+            data: closingPrices,  // Use the closing prices array here
+            fill: false,
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        }]
+    };
+
+    if (pred) {
+        // Code to append predicted prices to the chart
+        var forecastDates = pred['forecast_dates']; // array of dates for forecast
+        var predictedPrices = pred['predicted_prices']; // array of predicted prices
+
+        // Append predicted data to the chart datasets
+        data.datasets.push({
+            label: 'Predicted Price',
+            data: predictedPrices, // use the predicted prices array here
+            fill: false,
+            borderColor: 'rgb(255, 99, 132)', // color of the predictions line
+            tension: 0.1,
+            zIndex: 0
+        });
+
+        data.datasets.reverse()
+    }
+    
+
+    // Render the chart
+    const ctx = document.getElementById('stockPriceChart').getContext('2d');
+    const stockPriceChart = new Chart(ctx, {
+        type: 'line',
+        data: data,
+        options: {
+            responsive: false,
+            maintainAspectRatio: true
+    }
+    });
+</script>
+
+
+
+
+
+
 
 <!-- Show the latest price available -->
 <div>
@@ -31,18 +112,44 @@
     {% endif %}
 </div>
 
-<!-- Add position form -->
-<form method="post">
-    {% csrf_token %}
-    <input type="hidden" name="symbol" value="{{ stock.symbol }}">
-    {{ form.shares }}
-    {{ form.purchase_date }}
-    <button type="submit" name="add">Add Position</button>
-</form>
+<div>
+    <h2>Company Details:</h2>
+    <p><strong>Asset Type:</strong> {{ stock.asset_type }}</p>
+    <p><strong>Description:</strong> {{ stock.description }}</p>
+    <p><strong>CIK:</strong> {{ stock.CIK }}</p>
+    <p><strong>Currency:</strong> {{ stock.currency }}</p>
+    <p><strong>Country:</strong> {{ stock.country }}</p>
+    <p><strong>Sector:</strong> {{ stock.sector }}</p>
+    <p><strong>Industry:</strong> {{ stock.industry }}</p>
+    <p><strong>Address:</strong> {{ stock.address }}</p>
+    <p><strong>Fiscal Year End:</strong> {{ stock.fiscal_year_end }}</p>
+    <p><strong>Latest Quarter:</strong> {{ stock.latest_quarter }}</p>
+    <!-- Display additional data from the JSONField if needed -->
+</div>
 
-{% if error_message %}
-<p style="color: red;">{{ error_message }}</p>
-{% endif %}
+
+
+
+<div>
+    <!-- Add order form -->
+    <h2>Place Order:</h2>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="symbol" value="{{ stock.symbol }}">
+        {{ form.shares }}
+        {{ form.order_type }}
+        {{ form.transaction_date }}
+        <button type="submit" name="add">Add Order</button>
+    </form>
+
+
+    {% if error_message %}
+    <p style="color: red;">{{ error_message }}</p>
+    {% endif %}
+</div>
+
+
+
 
 <a href="{% url 'stocks:portfolio' %}">Back to Portfolio</a>
 <a href="{% url 'user_home' %}">Back to Home</a>

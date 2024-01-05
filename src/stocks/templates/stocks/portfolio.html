@@ -1,28 +1,106 @@
-<!-- templates/stocks/portfolio.html -->
-<h1>My Portfolio</h1>
 
-<!-- Display current positions -->
-<ul>
-    {% for position in positions %}
-    <li>
-        {{ position.purchase_date }} - <a href="{% url 'stocks:stock_detail' position.stock.symbol %}">{{ position.stock.symbol }}</a> - {{ position.shares }} shares
-        <!-- Button to remove position -->
-        <form method="post" style="display: inline;">
-            {% csrf_token %}
-            <input type="hidden" name="position_id" value="{{ position.id }}">
-            <button type="submit" name="remove">Sell</button>
-        </form>
-    </li>
+
+{% load static %}
+
+
+<h1>{{ user.username }}'s Portfolio</h1>
+
+
+<h2>Cash Balance</h2>
+<p>${{ user_portfolio.cash_balance }}</p>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Container for the chart -->
+<canvas id="stockPriceChart" width="1200" height="600"></canvas>
+
+
+
+<!-- Chart rendering script -->
+<script>
+    // Retrieve the serialized data
+    //var dates = JSON.parse(document.getElementById('dates_json').textContent);
+    //var closingPrices = JSON.parse(document.getElementById('closing_prices_json').textContent);
+    var dates = JSON.parse('{{ dates|safe }}');
+    var portfolio_values = JSON.parse('{{ portfolio_values|safe }}');
+
+    // Prepare your data for Chart.js
+    const data = {
+        labels: dates,  // Use the dates array here
+        datasets: [{
+            label: 'Portfolio Value',
+            data: portfolio_values,  // Use the closing prices array here
+            fill: false,
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        }]
+    };
+
+    // Render the chart
+    const ctx = document.getElementById('stockPriceChart').getContext('2d');
+    const stockPriceChart = new Chart(ctx, {
+        type: 'line',
+        data: data,
+        options: {
+            responsive: false,
+            maintainAspectRatio: true
+    }
+    });
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- Display Aggregate Data -->
+<h2>Holdings</h2>
+{% for stock, data in aggregate_data.items %}
+    <div>
+        <strong><a href="{% url 'stocks:stock_detail' stock.symbol %}">{{ stock.name }}</a></strong>
+        <p>Total Shares: {{ data.total_shares }}</p>
+        <p>Average Price: ${{ data.average_price }}</p>
+    </div>
+{% empty %}
+    <p>No holdings to display.</p>
+{% endfor %}
+
+
+<!-- Display Individual Orders -->
+<div>
+    <h2>Transaction History</h2>
+    {% for order in user_portfolio.orders.all %}
+        <p>{{ order }}</p> <!-- Using the __str__ representation of the order -->
     {% empty %}
-    <li>No positions in your portfolio.</li>
+        <p>No transactions to display.</p>
     {% endfor %}
-</ul>
+</div>
 
-<!-- Form to add new position -->
+<!-- Display Form for New Order -->
+<h2>Create New Order</h2>
 <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" name="add">Add Position</button>
+    {{ form.as_p }}  <!-- This will render all fields in the form including the ticker -->
+    <button type="submit">Submit Order</button>
 </form>
 
+
+{% if error_message %}
+    <p style="color: red;">{{ error_message }}</p>
+{% endif %}
+
+
+
 <a href="{% url 'user_home' %}">Back to Home</a>
+
+
+
+

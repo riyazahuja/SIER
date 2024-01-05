@@ -7,7 +7,7 @@ import pandas as pd
 import json
 import sys
 from datetime import datetime, timedelta
-
+import os
 
 # Create sequences for single ticker
 def create_sequences(input_data, target_data, window_size, forecast_horizon):
@@ -18,18 +18,49 @@ def create_sequences(input_data, target_data, window_size, forecast_horizon):
     return np.array(X), np.array(y)
 
 
-def predict(ticker, window_size, forecast_horizon, start_date):
+def load(ticker, window_size, forecast_horizon, root_path):
+    
+    model_path = os.path.join(root_path, f'models/bin/{ticker}/{forecast_horizon}f_{window_size}w_model.keras')
+    feat_path = os.path.join(root_path, f'models/bin/{ticker}/{forecast_horizon}f_{window_size}w_scaler_features.pkl')
+    target_path = os.path.join(root_path, f'models/bin/{ticker}/{forecast_horizon}f_{window_size}w_scaler_target.pkl')
+
+    model = load_model(model_path)
+    scaler_features = joblib.load(feat_path)
+    scaler_target = joblib.load(target_path)
+
+    #model = load_model(f'../bin/{ticker}/{forecast_horizon}f_{window_size}w_model.keras')
+    #scaler_features = joblib.load(f'/models/bin/{ticker}/{forecast_horizon}f_{window_size}w_scaler_features.pkl')
+    #scaler_target = joblib.load(f'/models/bin/{ticker}/{forecast_horizon}f_{window_size}w_scaler_target.pkl')
+    return (model, scaler_features, scaler_target)
+
+
+def calculate_rmspe(y_true, y_pred):
+    # Ensure no zero denominators; add a small value, epsilon, to avoid division by zero errors.
+    epsilon = 1e-10
+    # Calculate percentage errors
+    percentage_errors = ((y_true - y_pred) / (y_true + epsilon)) ** 2
+    # Calculate mean of percentage errors
+    mean_percentage_error = np.mean(percentage_errors)
+    # Return RMSPE
+    return np.sqrt(mean_percentage_error) * 100
+
+
+
+def predict(ticker, window_size, forecast_horizon, start_date, cached_model, root_path):
 
 
     # Load the model and scalers
-    model = load_model(f'../bin/{ticker}/{forecast_horizon}f_{window_size}w_model.keras')
-    scaler_features = joblib.load(f'../bin/{ticker}/{forecast_horizon}f_{window_size}w_scaler_features.pkl')
-    scaler_target = joblib.load(f'../bin/{ticker}/{forecast_horizon}f_{window_size}w_scaler_target.pkl')
+    #model = load_model(f'../bin/{ticker}/{forecast_horizon}f_{window_size}w_model.keras')
+    #scaler_features = joblib.load(f'../bin/{ticker}/{forecast_horizon}f_{window_size}w_scaler_features.pkl')
+    #scaler_target = joblib.load(f'../bin/{ticker}/{forecast_horizon}f_{window_size}w_scaler_target.pkl')
+
+    model, scaler_features, scaler_target = cached_model
 
     # Load data for a single ticker
-    f = open(f'../../data/processed/data.json')  
+    data_path = os.path.join(root_path, f'data/processed/data.json')
+    f = open(data_path)  
     data_json = json.load(f)
-    ticker_data = data_json[ticker]  # Replace TICKER with your actual ticker
+    ticker_data = data_json[ticker]['Time Series (Daily)']  # Replace TICKER with your actual ticker
     f.close()
 
     df = pd.DataFrame(ticker_data).T
@@ -58,6 +89,10 @@ def predict(ticker, window_size, forecast_horizon, start_date):
         dt = pd.to_datetime(start_date)
     else:
         dt = start_date
+
+
+    #print(df['Date'])
+    #print(dt)
 
     while(len(df.index[df['Date'] == dt].tolist()) == 0):
         dt = dt + pd.Timedelta(1, unit='d')
@@ -91,6 +126,8 @@ def predict(ticker, window_size, forecast_horizon, start_date):
 
     actual_prices=actual_prices.flatten()
     rmse = np.sqrt(mean_squared_error(actual_prices, predicted_prices))
+    rmspe = calculate_rmspe(actual_prices, predicted_prices)
+
     dates_full = pd.to_datetime(df['Date'])
     forecast_dates = dates_full[start_idx:start_idx + forecast_horizon]
 
@@ -105,7 +142,8 @@ def predict(ticker, window_size, forecast_horizon, start_date):
         'dates_full' : dates_full,
         'actual_prices': actual_prices,
         'actual_prices_full': actual_prices_full,        
-        'rmse': rmse
+        'rmse': rmse,
+        'rmspe' : rmspe
     }
 
 
@@ -114,7 +152,10 @@ def predict(ticker, window_size, forecast_horizon, start_date):
 def visualize(predictions):
 
     rmses = [p['rmse'] for p in predictions]
+    rmspes = [p['rmspe'] for p in predictions]
+
     print(f'Average RMSE:', sum(rmses)/len(rmses))
+    print(f'Average RMSPE:', sum(rmspes)/len(rmspes))
 
     p0 = predictions[0]
 
@@ -132,9 +173,10 @@ def visualize(predictions):
 
 
 def get_all_dates(ticker, forecast_horizon, window_size):
-        td = timedelta(d=30)
+        cm = load(ticker, window_size, forecast_horizon, '../..')
+        td = timedelta(days=5 * forecast_horizon)
         temp_dt = (datetime.today() - td).strftime(r'%Y-%m-%d')
-        temp = predict(ticker, window_size, forecast_horizon, temp_dt)
+        temp = predict(ticker, window_size, forecast_horizon, temp_dt,cm,'../..')
         dates_full = temp['dates_full']
         start_dates = [dates_full[i] for i in range(window_size, len(dates_full)-forecast_horizon) if (i % (forecast_horizon // 3) == 0)]
         return start_dates
@@ -149,36 +191,13 @@ if __name__ == '__main__':
         if len(sys.argv) > 4:
             start_dates = sys.argv[4:]
         else:
-            start_dates = get_all_dates()
+            start_dates = get_all_dates(ticker, forecast_horizon, window_size)
     elif len(sys.argv) > 3:
         start_dates = sys.argv[3:]
     else:
-        start_dates = get_all_dates()
+        start_dates = get_all_dates(ticker, forecast_horizon, window_size)
 
-    predictions = [predict(ticker, window_size, forecast_horizon, date) for date in start_dates]
-    visualize(predictions)
-
+    cached_model = load(ticker, window_size, forecast_horizon,'../..')
     
-'''
-
-ticker = 'IBM'
-
-window_size = 120
-forecast_horizon = 30
-
-days = [dates_full[i] for i in range(window_size, len(dates_full)-forecast_horizon) if (i % (forecast_horizon // 3) == 0)]
-
-
-
-# forecast_dates = dates_full[start_idx:start_idx + forecast_horizon]
-
-# # Calculate RMSE for the 30-day forecast
-# rmse = np.sqrt(mean_squared_error(actual_prices, predicted_prices))
-# print(f'RMSE for the {forecast_horizon}-day forecast:', rmse)
-
-
-
-predictions = [predict(day) for day in days]
-
-visualize(dates_full,actual_prices_full, predictions)
-'''
+    predictions = [predict(ticker, window_size, forecast_horizon, date, cached_model, '../..') for date in start_dates]
+    visualize(predictions)

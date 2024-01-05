@@ -4,5 +4,5 @@ from .models import *
 
 admin.site.register(Stock)
 admin.site.register(Price)
-admin.site.register(Position)
+admin.site.register(Order)
 admin.site.register(Portfolio)

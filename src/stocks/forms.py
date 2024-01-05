@@ -1,19 +1,22 @@
 from django import forms
-from .models import Position, Stock
+from .models import Order, Stock
 
-class PositionForm(forms.ModelForm):
-    symbol = forms.CharField(max_length=10, required=True, help_text="Enter the stock ticker")
-    shares = forms.IntegerField(required=True)
-    purchase_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
+
+class OrderForm(forms.ModelForm):
+    ticker = forms.CharField(max_length=10, required=True, help_text="Enter the stock ticker")
 
     class Meta:
-        model = Position
-        fields = ['symbol', 'shares', 'purchase_date']  # Define fields in the order you want them to appear
+        model = Order
+        fields = ['ticker', 'shares', 'order_type', 'transaction_date']
+        widgets = {
+            'transaction_date': forms.DateInput(attrs={'type': 'date'}),
+        }
+        # Exclude the stock field from the form itself, as it will be set based on the ticker
 
-    def clean_symbol(self):
-        symbol = self.cleaned_data.get('symbol').upper()
+    def clean_ticker(self):
+        ticker = self.cleaned_data['ticker'].upper()  # Normalize ticker to uppercase
         try:
-            stock = Stock.objects.get(symbol=symbol)
+            stock = Stock.objects.get(symbol=ticker)  # Attempt to find the stock
         except Stock.DoesNotExist:
-            raise forms.ValidationError(f"No stock found with symbol: {symbol}")
-        return stock
+            raise forms.ValidationError(f"No stock found with ticker: {ticker}")
+        return stock  # Return the stock object instead of the ticker
