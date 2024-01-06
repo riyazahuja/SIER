@@ -1,7 +1,25 @@
-<!-- accounts/templates/accounts/register.html -->
-<h2>Register</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Register</button>
-</form>
+{% load static %}
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="{% static 'styles.css' %}">
+    <title>Register for SIER</title>
+</head>
+
+<body>
+<div class="container">
+    <header class="header">
+        <h1>Register</h1>
+    </header>
+    <div class="form-container">
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="nav-link">Register</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

@@ -1,7 +1,27 @@
-<!-- accounts/templates/accounts/login.html -->
-<h2>Login</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Login</button>
-</form>
+{% load static %}
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="{% static 'styles.css' %}">
+    <title>SIER Login</title>
+</head>
+
+<body>
+<div class="container">
+    <header class="header">
+        <h1>Login</h1>
+    </header>
+    <div class="form-container">
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="nav-link">Login</button>
+        </form>
+    </div>
+</div>
+</body>
+
+
+</html>

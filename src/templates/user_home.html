@@ -1,24 +1,43 @@
-<h1>Welcome {{ username }}!</h1>
-<a href="{% url 'stocks:portfolio' %}">My Portfolio</a>
-<form id="quicksearch-form">
-    <input type="text" placeholder="Enter Ticker" id="quicksearch-input">
-    <button type="submit">Search</button>
-</form>
+{% load static %}
 
-<!-- Logout Form -->
-<form action="{% url 'accounts:logout' %}" method="post" id="logout-form">
-    {% csrf_token %}
-    <a href="#" onclick="document.getElementById('logout-form').submit(); return false;">Logout</a>
-</form>
 
-<!-- JavaScript to handle dynamic form action for quick search -->
-<script>
-    document.getElementById('quicksearch-form').addEventListener('submit', function(e) {
-        e.preventDefault(); // Prevent the default form submission
-
-        var symbol = document.getElementById('quicksearch-input').value.toUpperCase(); // Get the ticker symbol from input
-        var actionUrl = '/stocks/' + symbol + '/'; // Construct the URL
-
-        window.location.href = actionUrl; // Redirect to the constructed URL
-    });
-</script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to SIER Financials</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'styles.css' %}">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Welcome {{ username }}!</h1>
+        </header>
+        <nav class="navigation">
+            <a href="{% url 'stocks:portfolio' %}" class="nav-link">My Portfolio</a>
+            <a href="#" onclick="document.getElementById('logout-form').submit(); return false;" class="nav-link">Logout</a>
+        </nav>
+        <section class="quicksearch">
+            <form id="quicksearch-form" class="quicksearch-form">
+                <input type="text" placeholder="Enter Ticker" id="quicksearch-input" class="quicksearch-input">
+                <button type="submit" class="quicksearch-button">Search</button>
+            </form>
+        </section>
+        <!-- Logout Form -->
+        <form action="{% url 'accounts:logout' %}" method="post" id="logout-form">
+            {% csrf_token %}
+            <!-- hidden logout form -->
+        </form>
+        <script>
+            // JavaScript to handle dynamic form action for quick search
+            document.getElementById('quicksearch-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                var symbol = document.getElementById('quicksearch-input').value.toUpperCase();
+                var actionUrl = '/stocks/' + symbol + '/';
+                window.location.href = actionUrl;
+            });
+        </script>
+    </div>
+</body>
+</html>

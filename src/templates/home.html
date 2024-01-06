@@ -1,3 +1,23 @@
-<h1>Welcome to SIER Financials</h1>
-<a href="{% url 'accounts:login' %}">Login</a>
-<a href="{% url 'accounts:register' %}">Register</a>
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SIER</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'styles.css' %}">
+</head>
+<body>
+
+<div class="container">
+    <header class="header">
+        <h1>Welcome to SIER Financials</h1>
+    </header>
+    
+    <div class="navigation">
+        <a href="{% url 'accounts:login' %}" class="nav-link">Login</a>
+        <a href="{% url 'accounts:register' %}" class="nav-link">Register</a>
+    </div>
+</div>
+
+</body>
+</html>

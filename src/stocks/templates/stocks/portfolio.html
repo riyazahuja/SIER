@@ -1,106 +1,105 @@
-
-
 {% load static %}
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ user.username }}'s Portfolio</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'styles.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>{{ user.username }}'s Portfolio</h1>
+        </header>
 
-<h1>{{ user.username }}'s Portfolio</h1>
+        <nav class="navigation">
+            <a href="{% url 'user_home' %}" class="nav-link">Home</a>
+            <!-- Add more navigation links as needed -->
+        </nav>
+
+        <!-- Cash Balance -->
+        <section>
+            <h2>Cash Balance</h2>
+            <p>${{ user_portfolio.cash_balance }}</p>
+        </section>
+
+        <!-- Portfolio Chart -->
+        <section>
+            <canvas id="stockPriceChart" width="1200" height="600"></canvas>
+        </section>
+
+        <!-- Holdings -->
+        <section>
+            <h2>Holdings</h2>
+            {% for stock, data in aggregate_data.items %}
+                <div class="holding-item">
+                    <strong><a href="{% url 'stocks:stock_detail' stock.symbol %}">{{ stock.name }}</a></strong>
+                    <p>Total Shares: {{ data.total_shares }}</p>
+                    <p>Average Price: ${{ data.average_price }}</p>
+                </div>
+            {% empty %}
+                <p>No holdings to display.</p>
+            {% endfor %}
+        </section>
+
+        <!-- Transaction History -->
+        <section>
+            <h2>Transaction History</h2>
+            {% for order in user_portfolio.orders.all %}
+                <div class="transaction-item">
+                    <p>{{ order }}</p>
+                </div>
+            {% empty %}
+                <p>No transactions to display.</p>
+            {% endfor %}
+        </section>
+
+        <!-- New Order Form -->
+        <section>
+            <h2>Create New Order</h2>
+            <form method="post" class="auth-form">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="nav-link">Submit Order</button>
+            </form>
+        </section>
+
+        {% if error_message %}
+            <p style="color: red;">{{ error_message }}</p>
+        {% endif %}
 
 
-<h2>Cash Balance</h2>
-<p>${{ user_portfolio.cash_balance }}</p>
-
-
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<!-- Container for the chart -->
-<canvas id="stockPriceChart" width="1200" height="600"></canvas>
-
-
-
-<!-- Chart rendering script -->
-<script>
-    // Retrieve the serialized data
-    //var dates = JSON.parse(document.getElementById('dates_json').textContent);
-    //var closingPrices = JSON.parse(document.getElementById('closing_prices_json').textContent);
-    var dates = JSON.parse('{{ dates|safe }}');
-    var portfolio_values = JSON.parse('{{ portfolio_values|safe }}');
-
-    // Prepare your data for Chart.js
-    const data = {
-        labels: dates,  // Use the dates array here
-        datasets: [{
-            label: 'Portfolio Value',
-            data: portfolio_values,  // Use the closing prices array here
-            fill: false,
-            borderColor: 'rgb(75, 192, 192)',
-            tension: 0.1
-        }]
-    };
-
-    // Render the chart
-    const ctx = document.getElementById('stockPriceChart').getContext('2d');
-    const stockPriceChart = new Chart(ctx, {
-        type: 'line',
-        data: data,
-        options: {
-            responsive: false,
-            maintainAspectRatio: true
-    }
-    });
-</script>
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- Display Aggregate Data -->
-<h2>Holdings</h2>
-{% for stock, data in aggregate_data.items %}
-    <div>
-        <strong><a href="{% url 'stocks:stock_detail' stock.symbol %}">{{ stock.name }}</a></strong>
-        <p>Total Shares: {{ data.total_shares }}</p>
-        <p>Average Price: ${{ data.average_price }}</p>
     </div>
-{% empty %}
-    <p>No holdings to display.</p>
-{% endfor %}
 
+    <!-- Chart rendering script -->
+    <script>
+        var dates = JSON.parse('{{ dates|safe }}');
+        var portfolio_values = JSON.parse('{{ portfolio_values|safe }}');
 
-<!-- Display Individual Orders -->
-<div>
-    <h2>Transaction History</h2>
-    {% for order in user_portfolio.orders.all %}
-        <p>{{ order }}</p> <!-- Using the __str__ representation of the order -->
-    {% empty %}
-        <p>No transactions to display.</p>
-    {% endfor %}
-</div>
+        const data = {
+            labels: dates,
+            datasets: [{
+                label: 'Portfolio Value',
+                data: portfolio_values,
+                fill: false,
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+            }]
+        };
 
-<!-- Display Form for New Order -->
-<h2>Create New Order</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}  <!-- This will render all fields in the form including the ticker -->
-    <button type="submit">Submit Order</button>
-</form>
-
-
-{% if error_message %}
-    <p style="color: red;">{{ error_message }}</p>
-{% endif %}
-
-
-
-<a href="{% url 'user_home' %}">Back to Home</a>
-
-
-
-
+        const ctx = document.getElementById('stockPriceChart').getContext('2d');
+        const stockPriceChart = new Chart(ctx, {
+            type: 'line',
+            data: data,
+            options: {
+                responsive: false,
+                maintainAspectRatio: true
+            }
+        });
+    </script>
+</body>
+</html>
