@@ -27,21 +27,28 @@ def stock_detail(request, symbol):
         # Handling prediction form submission
         if 'predict' in request.POST:
             start_date = request.POST.get('start_date')
+            forecast_horizon = int(request.POST.get('forecast_horizon', 30))  # Default to 30 days if not provided
+
+            # Set window size based on forecast horizon
+            if forecast_horizon == 7:
+                window_size = 60
+            elif forecast_horizon == 90:
+                window_size = 360
+            else:  # Default to 30 days
+                window_size = 120
+
             if start_date:
                 try:
-                    # Call your prediction function here
-                    window_size = 120  # example value
-                    forecast_horizon = 30  # example value
                     predictions = run_prediction(symbol, window_size, forecast_horizon, start_date)
-                except Exception as e:  # Catch and handle any error occurred during prediction
+                except Exception as e:
                     prediction_error = str(e)
             else:
                 prediction_error = "Please provide a valid start date."
 
-            print(predictions)
+            #print(predictions)
 
             start_idx = predictions['forecast_dates'].index[0]
-            print(start_idx)
+            
 
             predictions['start_date'] = predictions['start_date'].strftime("%Y-%m-%d")
             predictions['predicted_prices'] = [float(p) for p in predictions['predicted_prices']]
@@ -56,10 +63,7 @@ def stock_detail(request, symbol):
             temp = [None for i in range(start_idx)]
             predictions['predicted_prices'] = temp + predictions['predicted_prices']
 
-            print('types:')
-            for k,v in predictions.items():
-                print(f'{k} : {type(v)}')
-
+            
             predictions = mark_safe(json.dumps(predictions))
             #print(predictions)
             #print(prediction_error)

@@ -8,6 +8,12 @@ import json
 import sys
 from datetime import datetime, timedelta
 import os
+from lime import lime_tabular
+
+
+
+
+
 
 # Create sequences for single ticker
 def create_sequences(input_data, target_data, window_size, forecast_horizon):
@@ -103,10 +109,49 @@ def predict(ticker, window_size, forecast_horizon, start_date, cached_model, roo
 
     # Find the index of the start date
     start_idx = df.index[df['Date'] == pd.to_datetime(start_date)].tolist()[0]
+    #print('Previous 120 days')
+    #print(df[start_idx - window_size:start_idx].to_json())
 
     # Prepare the input sequence for the model
     input_sequence = scaled_features[start_idx - window_size:start_idx]
     input_sequence = input_sequence.reshape((1, window_size, -1))
+
+    #print("Training Data Shape:", X_train.reshape(-1, X_train.shape[2]).shape)
+    #print("Number of Features:", len(numeric_features))
+    #print("Feature Names:", numeric_features)
+
+
+    def lstm_predict_wrapper(model, data_2d):
+        # The number of samples will be the first dimension of data_2d
+        num_samples = data_2d.shape[0]
+
+        # Reshape the data to 3D format (samples, timesteps, features)
+        # The last timestep of each sample is used for prediction
+        data_3d = np.zeros((num_samples, window_size, 26))
+        data_3d[:, -1, :] = data_2d  # Set the last timestep
+        predictions = model.predict(data_3d)
+
+        return predictions[:, -1, 0]
+    
+    input_sequence_for_lime = input_sequence[0, -1, :].reshape(1, -1)
+    input_sequence_2d = input_sequence.reshape(1, -1)
+    #print("Input sequence shape for LIME:", input_sequence_for_lime.shape)
+
+
+    explainer = lime_tabular.LimeTabularExplainer(
+    training_data=X_train.reshape(-1, X_train.shape[2]), # Flatten the training data
+    feature_names=numeric_features,
+    mode='regression'
+    )
+
+    exp = explainer.explain_instance(
+        input_sequence_for_lime[0], 
+        lambda x: lstm_predict_wrapper(model, x),
+        num_features=len(numeric_features)
+    )
+
+    feature_importance = {feature: weight for feature, weight in exp.as_list()}
+
 
     # Predict the next 30 days
     predicted_prices_scaled = model.predict(input_sequence)
@@ -114,6 +159,10 @@ def predict(ticker, window_size, forecast_horizon, start_date, cached_model, roo
     # Inverse transform the predicted scaled prices to the original price scale
     predicted_prices = scaler_target.inverse_transform(predicted_prices_scaled.reshape(-1, 1)).reshape(-1, forecast_horizon)
     predicted_prices=predicted_prices.flatten()
+
+
+    #print('\nPrediction for next 30 days:')
+    #print(predicted_prices)
 
 
     actual_prices_scaled = scaled_target[start_idx:start_idx + forecast_horizon]
@@ -143,7 +192,8 @@ def predict(ticker, window_size, forecast_horizon, start_date, cached_model, roo
         'actual_prices': actual_prices,
         'actual_prices_full': actual_prices_full,        
         'rmse': rmse,
-        'rmspe' : rmspe
+        'rmspe' : rmspe,
+        'feature_importance' : feature_importance
     }
 
 
@@ -156,6 +206,24 @@ def visualize(predictions):
 
     print(f'Average RMSE:', sum(rmses)/len(rmses))
     print(f'Average RMSPE:', sum(rmspes)/len(rmspes))
+
+    
+
+
+    print('\nAverage Feature Importance:')
+
+    data = dict()
+    for p in predictions:
+        for f,w in p['feature_importance'].items():
+            if f not in data.keys():
+                data[f] = 0
+            else:
+                data[f] += float(w)
+    
+    for k,v in data.items():
+        data[k] /= len(predictions)
+
+    print(data)
 
     p0 = predictions[0]
 

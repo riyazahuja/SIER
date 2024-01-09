@@ -21,15 +21,23 @@
             <canvas id="stockPriceChart" width="1200" height="600"></canvas>
         </div>
 
+
+
         <div>
             <h2>Get Predictions:</h2>
-            <form method="post" action="."> <!-- Posts to the same URL -->
+            <form method="post" action=".">
                 {% csrf_token %}
-                <!-- Input for prediction date -->
                 <input type="date" name="start_date" required>
+                <select name="forecast_horizon">
+                    <option value="7">7 Days</option>
+                    <option value="30" selected>30 Days</option>
+                    <option value="90">90 Days</option>
+                </select>
                 <button type="submit" name="predict" class="nav-link">Predict Prices</button>
             </form>
-        </div>
+        </div>        
+
+
 
         <div>
             <h2>Latest Price:</h2>
@@ -111,6 +119,7 @@
                 tension: 0.1,
                 zIndex: 0
             });
+            data.datasets.reverse();
         }
 
         const ctx = document.getElementById('stockPriceChart').getContext('2d');
