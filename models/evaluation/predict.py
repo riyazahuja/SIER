@@ -9,7 +9,7 @@ import sys
 from datetime import datetime, timedelta
 import os
 from lime import lime_tabular
-
+import concurrent.futures
 
 
 
@@ -249,8 +249,23 @@ def get_all_dates(ticker, forecast_horizon, window_size):
         start_dates = [dates_full[i] for i in range(window_size, len(dates_full)-forecast_horizon) if (i % (forecast_horizon // 3) == 0)]
         return start_dates
     
+def predict_wrapper(args):
+    return predict(*args)
+
+def run_predictions_in_parallel(start_dates, ticker, window_size, forecast_horizon, cached_model, root_path):
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        # Prepare the arguments for each function call
+        args = [(ticker, window_size, forecast_horizon, date, cached_model, root_path) for date in start_dates]
+
+        # Run predictions in parallel
+        results = executor.map(predict_wrapper, args)
+
+        return list(results)
+
+
 
 if __name__ == '__main__':
+    #st = datetime.now()
     ticker = sys.argv[1]
     forecast_horizon = int(sys.argv[2])
     window_size = 4 * forecast_horizon
@@ -267,5 +282,9 @@ if __name__ == '__main__':
 
     cached_model = load(ticker, window_size, forecast_horizon,'../..')
     
-    predictions = [predict(ticker, window_size, forecast_horizon, date, cached_model, '../..') for date in start_dates]
+    #predictions = [predict(ticker, window_size, forecast_horizon, date, cached_model, '../..') for date in start_dates]
+    predictions = run_predictions_in_parallel(start_dates, ticker, window_size, forecast_horizon, cached_model, '../..')
+    #print(datetime.now()-st)
     visualize(predictions)
+
+
