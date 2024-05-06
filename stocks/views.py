@@ -45,8 +45,8 @@ def stock_detail(request, symbol):
             else:
                 prediction_error = "Please provide a valid start date."
 
-            #print(predictions)
-
+            print(f"Pred: {predictions}\n Error: {prediction_error}")
+            
             start_idx = predictions['forecast_dates'].index[0]
             
 
