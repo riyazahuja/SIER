@@ -58,6 +58,4 @@ Outlined below is the key directory structure of the SIER project:
 - `/static`: Stores CSS files for the web styling.
 - `/data`: Consists of scripts and JSON data for stocks.
 
-## License
-Specify your license or if the project is open-sourced, provide details here.
 
