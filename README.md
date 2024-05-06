@@ -14,68 +14,50 @@ SIER aims to:
 - **Foster a Collaborative Community**: Create a space where users can learn from and collaborate with each other.
 - **Adapt and Innovate**: Continuously improve and innovate the platform based on user feedback and market changes.
 
-## File/Repository Structure
+## Overview
+SIER is a cutting-edge stock prediction system that utilizes an attention-based seq2seq LSTM model with LIME to offer transparent and understandable investment predictions. This system is designed to provide users with highly accurate short to medium term financial forecasts, aiding in more informed investment decisions.
 
-- `/data`: Contains raw data, processed data, and data retrieval scripts, ensuring a robust foundation for analysis and model training.
-    - `/raw`: Raw data files from various sources.
-    - `/processed`: Cleaned and preprocessed data ready for analysis.
-    - `/scripts`: Scripts for data retrieval and preprocessing.
+## Features
+- **Pre-loaded Data**: Includes data for 5 stock tickers as standard, each with 5 years of historical information.
+- **Prediction Horizons**: Capable of generating forecasts over 7, 30, and 90 days.
+- **Accuracy**: Delivers predictions with historical RMSPE accuracies of 96%, 93%, and 90% for 7, 30, and 90 day forecasts, respectively.
+- **API Integration**: Easily connects to larger datasets through financial data APIs for extended analysis.
+- **Transparent Predictions**: Utilizes LIME to explain the factors influencing each prediction, enhancing user trust and understanding.
 
-- `/docs`: Documentation files, including detailed project proposals, technical references, and user manuals.
+## Installation
 
-- `/models`: AI and machine learning models, including both the initial models and subsequent iterations.
-    - `/domains`: Interfaces and model domains for data handling.  
-    - `/training`: Scripts and notebooks used for model training.
-    - `/evaluation`: Tools and scripts for model evaluation and validation.
-
-- `/src`: Source code for the SIER platform, including data processing, model inference, and front-end interface.
-    - `/api`: Code for the backend, including data APIs and model serving.
-    - `/services`: External API accesses and price servicing.
-    - `/ui`: Front-end code for the web application or user interface.
-    - `/utils`: Caching and other utilities
-
-- `/tests`: Automated tests for software components to ensure reliability and performance.
-
-- `/deploy`: Scripts and configuration files for deploying the application in various environments.
-
-
-## UI Setup and Local Development
-
-### Setting Up the Local HTTP Server
-
-SIER's UI is built with web technologies and can be run locally using `http-server`, a simple, zero-configuration command-line HTTP server. To set up and run the UI on your local machine, follow these steps:
-
-1. **Install `http-server` globally**: This allows you to use `http-server` from any directory in your command line.
+- Clone the repository:
     ```bash
-    npm install -g http-server
+    git clone <repository-url>
     ```
-   - If you do not have Node.js and npm installed, download and install them from [nodejs.org](https://nodejs.org/).
 
-2. **Navigate to the Project Root**: Change into the root directory of the SIER project where the `index.html` file is located within the `src/ui` directory.
-
-3. **Start the Server**: Run the following command to start `http-server`, disabling caching with `-c-1`:
+- Install dependencies:
     ```bash
-    http-server -c-1
-    ```
-    - The `-c-1` flag is used to prevent the server from caching files.
-
-4. **Access the UI**: Open your web browser and navigate to the following address to view the UI:
-    ```
-    http://127.0.0.1:8080/src/ui/
+    pip install -r requirements.txt
     ```
 
-### Development and Testing
+## Usage
 
-- **Live Reloading**: For a better development experience with live reloading, consider using `http-server` with a watch tool like `nodemon` or integrating a more advanced build tool like `webpack` that provides a development server with live reloading out of the box.
-- **Testing**: Test the UI in multiple browsers and screen sizes to ensure compatibility and responsiveness.
-- **Contributions**: If you make changes to the UI, please ensure they are well-documented and tested before submitting a pull request.
+### Evaluating Predictions
+To evaluate the stock predictions, run:
+    ```
+    python models/evaluation/predict.py <TICKER> <Forecast Horizon> <Window Size>
+    ```
 
-## How to Contribute
+### Running the Web Application
+To launch the full Django website:
+    ```
+    python manage.py runserver
+    ```
 
-- **Fork the Repository**: Start by forking the repository and cloning it to your local machine.
-- **Understand the Goals**: Familiarize yourself with the project goals and current structure.
-- **Pick a Task**: Look at the current issues or proposed enhancements and pick something that aligns with your skills and interests.
-- **Coding Standards**: Ensure your code adheres to the established standards and is well-documented.
-- **Submit a Pull Request**: Once you're satisfied with your work, submit a pull request for review.
+## Directory Structure
+Outlined below is the key directory structure of the SIER project:
+- `/stocks`: Contains the models and views for stock prediction management.
+- `/models`: Includes model definitions and training/evaluation scripts.
+- `/templates`: Houses Django templates for the web interface.
+- `/static`: Stores CSS files for the web styling.
+- `/data`: Consists of scripts and JSON data for stocks.
 
+## License
+Specify your license or if the project is open-sourced, provide details here.
 
