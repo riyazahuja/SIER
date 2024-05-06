@@ -1,5 +1,4 @@
-from models.evaluation.predict import load, predict
-
+from ...models.evaluation.predict import load, predict
 
 
 def run_prediction(ticker, window_size, forecast_horizon, start_date):

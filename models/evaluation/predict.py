@@ -96,7 +96,6 @@ def predict(ticker, window_size, forecast_horizon, start_date, cached_model, roo
     else:
         dt = start_date
 
-
     #print(df['Date'])
     #print(dt)
 
@@ -242,7 +241,7 @@ def visualize(predictions):
 
 def get_all_dates(ticker, forecast_horizon, window_size):
         cm = load(ticker, window_size, forecast_horizon, '../..')
-        td = timedelta(days=5 * forecast_horizon)
+        td = timedelta(days=10 * forecast_horizon)
         temp_dt = (datetime.today() - td).strftime(r'%Y-%m-%d')
         temp = predict(ticker, window_size, forecast_horizon, temp_dt,cm,'../..')
         dates_full = temp['dates_full']
@@ -283,6 +282,7 @@ if __name__ == '__main__':
     cached_model = load(ticker, window_size, forecast_horizon,'../..')
     
     #predictions = [predict(ticker, window_size, forecast_horizon, date, cached_model, '../..') for date in start_dates]
+    #print(f"Dates list: {start_dates}\n")
     predictions = run_predictions_in_parallel(start_dates, ticker, window_size, forecast_horizon, cached_model, '../..')
     #print(datetime.now()-st)
     visualize(predictions)
