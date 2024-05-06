@@ -28,7 +28,7 @@ SIER is a cutting-edge stock prediction system that utilizes an attention-based 
 
 - Clone the repository:
     ```bash
-    git clone <repository-url>
+    git clone https://github.com/riyazahuja/SIER
     ```
 
 - Install dependencies:
